@@ -1,0 +1,242 @@
+#include <Windows.h>
+
+#include "Byte_Manager/Byte_Manager.hpp"
+
+#include "Redirection_Manager/Redirection_Manager.hpp"
+
+void* Engine_Module;
+
+#include "Delimited_Interface.hpp"
+
+#include "Extended_Interface.hpp"
+
+#include "Post_Network_Data_Received.hpp"
+
+#include "Event_Processor.hpp"
+
+#include "Set_Simulation_Time.hpp"
+
+#include "Set_Tick_Number.hpp"
+
+#include "Write_Events.hpp"
+
+#include "Post_Data_Update.hpp"
+
+#include "Interpolate.hpp"
+
+#include "Update_Animation.hpp"
+
+#include "Update_Animation_State.hpp"
+
+#include "Compute_Torso_Rotation.hpp"
+
+#include "Finish_Move.hpp"
+
+#include "Fire_Bullets.hpp"
+
+#include "Read_Packets.hpp"
+
+#include "Move.hpp"
+
+#include "Send_Move.hpp"
+
+#include "Send_Datagram.hpp"
+
+#include "Packet_Start.hpp"
+
+#include "Run_Command.hpp"
+
+#include "Copy_Command.hpp"
+
+__int32 __stdcall DllMain(HMODULE This_Module, unsigned __int32 Call_Reason, void* Reserved)
+{
+	if (Call_Reason == DLL_PROCESS_DETACH)
+	{
+		__fastfail(EXIT_SUCCESS);
+	}
+	else
+	{
+		if (Call_Reason == DLL_PROCESS_ATTACH)
+		{
+			if (GetModuleHandleW(L"gmod.exe") == nullptr)
+			{
+				DWORD Identifier;
+
+				if (GetWindowThreadProcessId(FindWindowW(nullptr, L"Garry's Mod (64-bit)"), &Identifier) != 0)
+				{
+					void* Process = OpenProcess(PROCESS_ALL_ACCESS, 0, Identifier);
+
+					void* Remote_Path = VirtualAllocEx(Process, nullptr, 1, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+					wchar_t Local_Path[MAX_PATH];
+
+					GetModuleFileNameW(This_Module, Local_Path, sizeof(Local_Path));
+
+					WriteProcessMemory(Process, Remote_Path, Local_Path, sizeof(Local_Path), nullptr);
+
+					WaitForSingleObject(CreateRemoteThread(Process, nullptr, 0, (LPTHREAD_START_ROUTINE)LoadLibraryW, Remote_Path, 0, nullptr), INFINITE);
+
+					VirtualFreeEx(Process, Remote_Path, 0, MEM_RELEASE);
+				}
+			}
+			else
+			{
+				Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(15855, (unsigned __int8*)LoadLibraryW(L"vaudio_speex.dll"), 9949905938957970706ull), 1, 195);
+
+				AllocConsole();
+
+				SetConsoleTitleW(L"Segregation");
+
+				_wfreopen(L"CONOUT$", L"w", stdout);
+
+				SetConsoleOutputCP(65001);
+
+				HANDLE Standard_Output_Handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+				CONSOLE_FONT_INFOEX Console_Font_Information = { sizeof(CONSOLE_FONT_INFOEX), 0, { 0, 12 }, FF_DONTCARE, FW_NORMAL, { L"Terminal" } };
+
+				SetCurrentConsoleFontEx(Standard_Output_Handle, 0, &Console_Font_Information);
+
+				CONSOLE_CURSOR_INFO Console_Cursor_Information = { sizeof(Console_Cursor_Information) };
+
+				SetConsoleTextAttribute(Standard_Output_Handle, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_RED);
+
+				SetConsoleCursorInfo(Standard_Output_Handle, &Console_Cursor_Information);
+
+				CONSOLE_SCREEN_BUFFER_INFO Console_Screen_Buffer_Information;
+
+				GetConsoleScreenBufferInfo(Standard_Output_Handle, &Console_Screen_Buffer_Information);
+
+				COORD Top_Left = { };
+
+				DWORD Characters_Written;
+
+				FillConsoleOutputAttribute(Standard_Output_Handle, FOREGROUND_BLUE | FOREGROUND_GREEN | FOREGROUND_RED | FOREGROUND_INTENSITY | BACKGROUND_RED, Console_Screen_Buffer_Information.dwSize.X * Console_Screen_Buffer_Information.dwSize.Y, Top_Left, &Characters_Written);
+
+				Engine_Module = GetModuleHandleW(L"engine.dll");
+
+				_putws(L"[ + ] Delimit Interface");
+				{
+					using Install_Interface_Handler_Type = void(*)(Interface_Structure* Interface, void* Handler, __int8 Invoke);
+
+					void* Install_Interface_Handler = Byte_Manager::Find_Bytes(15855, (unsigned __int8*)Engine_Module, 9489070461722959066ull);
+
+					Install_Interface_Handler_Type((unsigned __int64)Install_Interface_Handler)(Find_Interface((char*)"sv_cheats"), (void*)Force_Interface_Value, 1);
+
+					Install_Interface_Handler_Type((unsigned __int64)Install_Interface_Handler)(Find_Interface((char*)"sv_allowcslua"), (void*)Force_Interface_Value, 1);
+
+					Byte_Manager::Set_Bytes(0, (void*)((unsigned __int64)Byte_Manager::Find_Bytes(4832327113591360991, (unsigned __int8*)Engine_Module, 8537831801160118899) - 9), 1, 235);
+				}
+
+				_putws(L"[ + ] Extend Interface");
+				{
+					Implement_Extended_Interface();
+				}
+
+				_putws(L"[ + ] Events");
+				{
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(16777185, (unsigned __int8*)Client_Module, 12126569767325379908ull), 1, 195);
+
+					Post_Network_Data_Received_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(2047, (unsigned __int8*)Client_Module, 5509070456773632119), (void*)Redirected_Post_Network_Data_Received);
+
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(508445, (unsigned __int8*)Engine_Module, 15315303757620206820ull), 1, 235);
+
+					void* Event_Listener = (void*)__builtin_malloc(sizeof(void*));
+
+					void* Event_Listener_Table = __builtin_malloc(sizeof(void*) * 2);
+
+					*(void**)((unsigned __int64)Event_Listener_Table + 8) = (void*)Event_Processor;
+
+					*(void**)Event_Listener = Event_Listener_Table;
+
+					using Add_Listener_Type = __int8(*)(void* Event_Manager, void* Listener, char* Event, void* Unknown_Parameter);
+
+					void* Add_Listener = Byte_Manager::Find_Bytes(253935, (unsigned __int8*)Engine_Module, 8835901034313384778);
+
+					void* Event_Manager = Byte_Manager::Solve_Relative(Byte_Manager::Find_Bytes(31623, (unsigned __int8*)Engine_Module, 11190410533011393613ull), 3);
+
+					Add_Listener_Type((unsigned __int64)Add_Listener)(Event_Manager, Event_Listener, (char*)"player_hurt", nullptr);
+
+					Add_Listener_Type((unsigned __int64)Add_Listener)(Event_Manager, Event_Listener, (char*)"entity_killed", nullptr);
+
+					void* Set_Simulation_Time_Reference = (void*)((unsigned __int64)Byte_Manager::Solve_Relative((void*)((unsigned __int64)Byte_Manager::Find_Bytes(2168606945952456417, (unsigned __int8*)Client_Module, 16499196670633112084ull) - 7), 3) + 48);
+
+					Original_Set_Simulation_Time = *(void**)Set_Simulation_Time_Reference;
+
+					*(void**)Set_Simulation_Time_Reference = (void*)Redirected_Set_Simulation_Time;
+
+					*(void**)((unsigned __int64)Byte_Manager::Solve_Relative(Byte_Manager::Find_Bytes(7918423844548743, (unsigned __int8*)Client_Module, 15881718154251215618ull), 3) + 48) = (void*)Redirected_Set_Tick_Number;
+
+					Write_Events_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(490991, (unsigned __int8*)Engine_Module, 15776377068302235188ull), (void*)Redirected_Write_Events);
+
+					Post_Data_Update_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(2129702994911, (unsigned __int8*)Client_Module, 8519043785474729670), (void*)Redirected_Post_Data_Update);
+				}
+
+				_putws(L"[ + ] Interpolation");
+				{
+					Interpolate_Manager.Redirect_Function(1, Byte_Manager::Find_Bytes(1983, (unsigned __int8*)Client_Module, 5185632773183495347), (void*)Redirected_Interpolate);
+				}
+
+				_putws(L"[ + ] Animations");
+				{
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(4448707, (unsigned __int8*)Client_Module, 2780369489983663503), 6, 144);
+
+					Update_Animation_Manager.Redirect_Function(2, Byte_Manager::Find_Bytes(11169853674457055, (unsigned __int8*)Client_Module, 13933784727300876964ull), (void*)Redirected_Update_Animation);
+
+					Update_Animation_State_Manager.Redirect_Function(1, Byte_Manager::Find_Bytes(16653807, (unsigned __int8*)Client_Module, 11528163788009019714ull), (void*)Redirected_Update_Animation_State);
+
+					Compute_Torso_Rotation_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(2138553279, (unsigned __int8*)Client_Module, 1594218614869091810), (void*)Redirected_Compute_Torso_Rotation);
+
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(2031, (unsigned __int8*)Client_Module, 12095624162194331321ull), 1, 195);
+
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(6927, (unsigned __int8*)Client_Module, 4463870537877969387), 17, 144);
+				}
+
+				_putws(L"[ + ] Prediction");
+				{
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(33348587037, (unsigned __int8*)Client_Module, 15603247578755587463ull), 1, 235);
+
+					Finish_Move_Manager.Redirect_Function(4, Byte_Manager::Find_Bytes(502775279, (unsigned __int8*)Client_Module, 1688265399167102076), (void*)Redirected_Finish_Move);
+
+					Fire_Bullets_Manager.Redirect_Function(2, Byte_Manager::Find_Bytes(231359, (unsigned __int8*)Client_Module, 4027704381885905114), (void*)Redirected_Fire_Bullets);
+				}
+
+				_putws(L"[ + ] Network");
+				{
+					Read_Packets_Manager.Redirect_Function(0, (void*)((unsigned __int64)Byte_Manager::Find_Bytes(1207984527359656951, (unsigned __int8*)Engine_Module, 791890331715239353) - 6), (void*)Redirected_Read_Packets);
+
+					Move_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(266406015, (unsigned __int8*)Engine_Module, 3194732367554632559), (void*)Redirected_Move);
+
+					unsigned __int8 Send_Move_Bytes[5] = { 233, 210 };
+
+					Byte_Manager::Copy_Bytes(0, Byte_Manager::Find_Bytes(895, (unsigned __int8*)Engine_Module, 14445930051567068677ull), sizeof(Send_Move_Bytes), Send_Move_Bytes);
+
+					Send_Move_Manager.Redirect_Function(2, Byte_Manager::Find_Bytes(3599, (unsigned __int8*)Engine_Module, 14280183856799702616ull), (void*)Redirected_Send_Move);
+
+					Send_Datagram_Manager.Redirect_Function(3, Byte_Manager::Find_Bytes(1723518316740607, (unsigned __int8*)Engine_Module, 12226165932995495392ull), (void*)Redirected_Send_Datagram);
+
+					Packet_Start_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(502260163, (unsigned __int8*)Engine_Module, 1280923722067716817), (void*)Redirected_Packet_Start);
+				}
+
+				_putws(L"[ + ] Input");
+				{
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(31, (unsigned __int8*)Client_Module, 7935025703931082227), 4, 144);
+
+					Copy_Command_Manager.Redirect_Function(0, Byte_Manager::Find_Bytes(28911, (unsigned __int8*)Client_Module, 1688862236286034043), (void*)Redirected_Copy_Command);
+				}
+
+				_putws(L"[ + ] View Effects");
+				{
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(255, (unsigned __int8*)Client_Module, 15837355970143546918ull), 52, 144);
+
+					Byte_Manager::Set_Bytes(0, Byte_Manager::Find_Bytes(536865293, (unsigned __int8*)Client_Module, 9147949097379576542), 1, 235);
+
+					Run_Command_Manager.Redirect_Function(4, Byte_Manager::Find_Bytes(8052522479, (unsigned __int8*)Client_Module, 11309921798514847033ull), (void*)Redirected_Run_Command);
+				}
+
+			}
+		}
+	}
+
+	return 1;
+}
