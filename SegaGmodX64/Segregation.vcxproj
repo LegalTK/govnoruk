@@ -96,6 +96,7 @@
     <ClInclude Include="Post_Network_Data_Received.hpp" />
     <ClInclude Include="Fire_Bullets.hpp" />
     <ClInclude Include="Priority.hpp" />
+    <ClInclude Include="Extrapolation.hpp" />
     <ClInclude Include="Read_Packets.hpp" />
     <ClInclude Include="Run_Command.hpp" />
     <ClInclude Include="Update_Animation.hpp" />

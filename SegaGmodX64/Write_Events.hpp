@@ -14,7 +14,7 @@ void Redirected_Write_Events(void* Unknown_Parameter_1, void* Unknown_Parameter_
 		{
 			Player_Data_Structure* Player_Data = &Players_Data[Player_Number];
 
-			Player_Data->Modifications_Data.clear();
+			Player_Data->Reset_Record();
 
 			Player_Data->Priority = 0;
 

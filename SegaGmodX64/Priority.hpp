@@ -1,3 +1,5 @@
+#include "Extrapolation.hpp"
+
 void* Get_Engine()
 {
 	static void* Engine = Byte_Manager::Solve_Relative(Byte_Manager::Find_Bytes(136933539719, (unsigned __int8*)Engine_Module, 16409920955244565394ull), 3);
@@ -31,7 +33,17 @@ Global_Variables_Structure* Get_Global_Variables()
 
 struct Player_Data_Structure
 {
-	__int32 Tick_Number[2];
+	void* Entity;
+
+	__int32 Handle;
+
+	__int32 Network_Tick;
+
+	bool Has_Record;
+
+	bool Pending_Record;
+
+	Extrapolation::History Motion_History;
 
 	__int8 Teleported;
 
@@ -63,6 +75,18 @@ struct Player_Data_Structure
 	__int8 Switch_X;
 
 	float Memorized_Y;
+
+	void Reset_Record()
+	{
+		Entity = nullptr;
+		Handle = -1;
+		Network_Tick = 0;
+		Has_Record = false;
+		Pending_Record = false;
+		Teleported = 0;
+		Motion_History.Reset();
+		Modifications_Data.clear();
+	}
 };
 
 Player_Data_Structure Players_Data[129];

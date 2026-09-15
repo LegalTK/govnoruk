@@ -34,6 +34,9 @@
     <ClInclude Include="Priority.hpp">
       <Filter>Header++</Filter>
     </ClInclude>
+    <ClInclude Include="Extrapolation.hpp">
+      <Filter>Header++</Filter>
+    </ClInclude>
     <ClInclude Include="Event_Processor.hpp">
       <Filter>Header++</Filter>
     </ClInclude>

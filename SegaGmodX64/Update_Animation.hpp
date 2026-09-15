@@ -1,5 +1,7 @@
 __int8 Update_Animation_Type;
 
+bool Extrapolating_Player;
+
 Redirection_Manager::Manager_Structure Update_Animation_Manager;
 
 void Save_Player_Data(void* Data, void* Player, std::vector<Player_Data_Structure::Modification_Structure>& Modifications_Data, void* Animations_Data)
@@ -31,12 +33,27 @@ void Redirected_Update_Animation(void* Player)
 
 	Global_Variables->Frame_Time = Previous_Frame_Time;
 
-	Player_Data_Structure* Player_Data = &Players_Data[*(__int32*)((unsigned __int64)Player + 136)];
+	const __int32 Player_Number = *(__int32*)((unsigned __int64)Player + 136);
 
-	if (Player_Data->Data[0] == 1)
+	if (!Extrapolating_Player && Player_Number > 0 && Player_Number < static_cast<__int32>(sizeof(Players_Data) / sizeof(Players_Data[0])))
 	{
-		Player_Data->Data[0] = 0;
+		Player_Data_Structure* Player_Data = &Players_Data[Player_Number];
 
-		Save_Player_Data(Player_Data->Data, Player, Player_Data->Modifications_Data, Player_Data->Animations_Data);
+		if (Player_Data->Pending_Record && Player_Data->Entity == Player && Player_Data->Handle == *(__int32*)((unsigned __int64)Player + 256))
+		{
+			Extrapolation::Sample Record{};
+			Record.Time = *(double*)((unsigned __int64)Player + 176);
+			Record.Receive_Tick = Player_Data->Network_Tick;
+			Record.Flags = *(__int32*)((unsigned __int64)Player + 1104);
+			Record.Move_Type = *(__int8*)((unsigned __int64)Player + 508);
+			Byte_Manager::Copy_Bytes(1, Record.Origin, sizeof(Record.Origin), (void*)((unsigned __int64)Player + 1080));
+			Byte_Manager::Copy_Bytes(1, Record.Velocity, sizeof(Record.Velocity), (void*)((unsigned __int64)Player + 336));
+			Player_Data->Motion_History.Push(Record);
+			Player_Data->Has_Record = Player_Data->Motion_History.Count != 0;
+			Player_Data->Pending_Record = false;
+
+			if (Player_Data->Has_Record)
+				Save_Player_Data(Player_Data->Data, Player, Player_Data->Modifications_Data, Player_Data->Animations_Data);
+		}
 	}
 }
